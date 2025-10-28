@@ -1,0 +1,19 @@
+{
+  "name": "devconnect",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/App.js",
+    "dev": "nodemon src/App.js"
+  },
+  "keywords": [
+    "node",
+    "backend"
+  ],
+  "author": "Uday Tyagi",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
