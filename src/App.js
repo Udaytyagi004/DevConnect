@@ -1,38 +1,31 @@
 const express = require("express");
-
+const connectDB = require("./config/database");
 const app = express();
+const User = require("./models/user");
 
-app.get("/user", (req, res) => {
-  res.send({ firstname: "Uday", lastname: "Tyagi" });
-});
+app.post("/signUp", async (req, res) => {
+  const userData = {
+    firstName: "Virat",
+    lastName: "Kohli",
+    emailId: "virat123@gmail.com",
+    password: "virat@000",
+    age: 35,
+    gender: "Male",
+  };
+  // creating the new instance of the User Model
+  const user = new User(userData);
+  await user.save();
 
-app.post("/user", (req, res) => {
-  //logic to save the data in the DB
-  res.send("Data is saved succesfully");
-});
-
-app.delete("/user", (req, res) => {
-  // logic to delete the data from the DB
-  res.send("Data is deleted successfully");
-});
-
-app.put("/user", (req, res) => {
-  res.send("Testing the PUT method API call");
-});
-
-app.patch("/user", (req, res) => {
-  res.send("Testing the PATCH method API call");
+  res.send("user is saved successfully");
 });
 
-app.use("/test", (req, res) => {
-  res.send("testing the server");
-});
-app.use("/home", (req, res) => {
-  res.send(" hello from the server");
-});
-// app.use("/", (req, res) => {
-//   res.send("home of the server");
-// });
-app.listen(3000, () => {
-  console.log("Server is Succesfully listening on port 3000");
-});
+connectDB()
+  .then(() => {
+    console.log("Database is connected succesfully");
+    app.listen(3000, () => {
+      console.log("Server is Succesfully listening on port 3000");
+    });
+  })
+  .catch((err) => {
+    console.error("Can't connect to the database");
+  });

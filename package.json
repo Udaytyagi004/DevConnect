@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/App1.js",
-    "dev": "nodemon src/App1.js"
+    "start": "node src/App.js",
+    "dev": "nodemon src/App.js"
   },
   "keywords": [
     "node",
@@ -14,6 +14,7 @@
   "author": "Uday Tyagi",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.19.3"
   }
 }
