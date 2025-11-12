@@ -76,19 +76,17 @@ app.delete("/user", async (req, res) => {
 
 //update API
 app.patch("/user", async (req, res) => {
-  const id = req.body.Id;
+  const data = req.body;
+
   try {
-    const user = await User.findByIdAndUpdate(
-      id,
-      {
-        firstName: "rohit",
-        age: [23],
-      },
-      { new: true, strict: false }
-    );
-    res.send(user);
+    const user = await User.findByIdAndUpdate(data.Id, data, {
+      new: true,
+      strict: false,
+      runValidators: true,
+    });
+    res.send("User Saved Succesfully");
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    res.status(400).send("Enter a valid gender" + err.message);
   }
 });
 
