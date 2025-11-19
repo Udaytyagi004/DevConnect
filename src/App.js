@@ -1,4 +1,5 @@
 const express = require("express");
+const validator = require("validator");
 const connectDB = require("./config/database");
 const app = express();
 const User = require("./models/user");
@@ -10,10 +11,12 @@ app.post("/signUp", async (req, res) => {
   // creating the new instance of the User Model
   const user = new User(req.body);
   try {
+    const isEmailValid = validator.isEmail(user.emailId);
+    if (!isEmailValid) throw new Error("Email is not Valid");
     await user.save();
     res.send("user is saved successfully");
   } catch (err) {
-    res.status(400).send("there is an Error while sign up");
+    res.status(400).send("Can't SignUp an Error Occured " + err.message);
   }
 });
 
@@ -75,18 +78,31 @@ app.delete("/user", async (req, res) => {
 });
 
 //update API
-app.patch("/user", async (req, res) => {
+app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
+  const userId = req.params?.userId;
 
   try {
-    const user = await User.findByIdAndUpdate(data.Id, data, {
+    const allowedFields = [
+      "password",
+      "age",
+      "gender",
+      "photoUrl",
+      "about",
+      "skills",
+    ];
+    const isAllowed = Object.keys(data).every((k) => allowedFields.includes(k));
+    if (!isAllowed) {
+      throw new Error("Some Fields Can't be updatd");
+    }
+    const user = await User.findByIdAndUpdate(userId, data, {
       new: true,
       strict: false,
       runValidators: true,
     });
     res.send("User Saved Succesfully");
   } catch (err) {
-    res.status(400).send("Enter a valid gender" + err.message);
+    res.status(400).send("Can't Update the Profile" + err.message);
   }
 });
 
