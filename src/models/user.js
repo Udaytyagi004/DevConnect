@@ -4,10 +4,8 @@ const userSchema = mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+
       trim: true,
-      minlength: 4,
-      maxlength: 50,
     },
     lastName: {
       type: String,
@@ -23,8 +21,6 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 8,
-      maxlength: 12,
     },
     age: {
       type: Number,
@@ -40,18 +36,16 @@ const userSchema = mongoose.Schema(
     },
     phtotUrl: {
       type: String,
-      default:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfroJ7CaeLakb4PbEmX6bFq42AtxPBsYFYag&s",
-    },
-    about: {
-      type: String,
-      default: `This is the default of about of the user`,
-      maxlength: 120,
       validate(value) {
         if (!validator.isURL(value)) {
           throw new Error("Url is not valid");
         }
       },
+    },
+    about: {
+      type: String,
+      default: `This is the default of about of the user`,
+      maxlength: 120,
     },
     skills: {
       type: [String],
