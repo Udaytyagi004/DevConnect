@@ -6,9 +6,15 @@ const User = require("./models/user");
 const { Collection } = require("mongoose");
 const { signUpValidation } = require("./utils/validation");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/Auth");
 
 // using MiddleWare (provided by express) for reading the json data of requests ==> this wil work for every request on this server
 app.use(express.json());
+app.use(cookieParser());
+
+// signUP API
 app.post("/signUp", async (req, res) => {
   const { firstName, lastName, emailId, password } = req.body;
   try {
@@ -26,71 +32,57 @@ app.post("/signUp", async (req, res) => {
       password: passwordHash,
     });
     await user.save();
+    // genrate a JWT token
+    const token = jwt.sign({ _id: user._id }, "uday@tyagi#1410$$");
+
+    // wrap it inside the cookie and send
+    res.cookie("token", token);
     res.send("user is saved successfully");
   } catch (err) {
     res.status(400).send("ERROR : " + err.message);
   }
 });
 
-// getting a user with the emailID
-
-app.get("/user", async (req, res) => {
+// Login API
+app.post("/login", async (req, res) => {
   try {
-    const email = req.body.emailId;
-    const userData = await User.findOne({ emailId: email });
-    if (userData.length === 0) {
-      res.status(404).send("User Not Found");
+    const { emailId, password } = req.body;
+    const isValidEmail = validator.isEmail(emailId);
+    if (!isValidEmail) {
+      throw new Error("Please Enter a Valid Email");
     }
-    console.log(typeof userData);
-    res.send(userData);
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid Credentials");
+    }
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (isPasswordMatch) {
+      // genrate a JWT token
+      const token = jwt.sign({ _id: user._id }, "uday@tyagi#1410$$");
+
+      // wrap it inside the cookie and send
+      res.cookie("token", token);
+      res.send("Login Succesfull");
+    } else {
+      throw new Error("Invalid Credentials");
+    }
   } catch (err) {
-    res.status(400).send("Something went Wrong");
+    res.status(400).send("Error : " + err.message);
   }
 });
 
-// get the user with an Id
-app.get("/getbyID", async (req, res) => {
-  const id = "690f407274a682aff36ed637";
+// Profile API
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const user = await User.findById(id);
+    const user = req.user;
     res.send(user);
   } catch (err) {
-    res.status(400).send("Something went wrong");
-  }
-});
-// Feed API => get the data of all the users
-app.get("/feed", async (req, res) => {
-  try {
-    const userData = await User.find({});
-    if (userData.length === 0) {
-      res.status(404).send("User Not Found");
-    }
-    res.send(userData);
-  } catch (err) {
-    res.status(400).send("Something went Wrong");
-  }
-});
-
-// delete API
-app.delete("/user", async (req, res) => {
-  const id = req.body.Id;
-
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      res.status(404).send("user is not found");
-    }
-    const username = user.firstName;
-
-    await User.findByIdAndDelete(id);
-    res.send(`delete the data of ${username} successfully`);
-  } catch (err) {
-    res.status(400).send("Something went wrong");
+    res.status(404).send("ERROR : " + err.message);
   }
 });
 
 //update API
-app.patch("/user/:userId", async (req, res) => {
+app.patch("/user/:userId", userAuth, async (req, res) => {
   const data = req.body;
   const userId = req.params?.userId;
 
@@ -118,27 +110,34 @@ app.patch("/user/:userId", async (req, res) => {
   }
 });
 
-// Login API
-
-app.post("/login", async (req, res) => {
+// Feed API => get the data of all the users
+app.get("/feed", userAuth, async (req, res) => {
   try {
-    const { emailId, password } = req.body;
-    const isValidEmail = validator.isEmail(emailId);
-    if (!isValidEmail) {
-      throw new Error("Please Enter a Valid Email");
+    const userData = await User.find({});
+    if (userData.length === 0) {
+      res.status(404).send("User Not Found");
     }
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      throw new Error("Invalid Credentials");
-    }
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-    if (isPasswordMatch) {
-      res.send("Login Succesfull");
-    } else {
-      throw new Error("Invalid Credentials");
-    }
+    res.send(userData);
   } catch (err) {
-    res.status(400).send("Error : " + err.message);
+    res.status(400).send("Something went Wrong");
+  }
+});
+
+// delete API
+app.delete("/user", userAuth, async (req, res) => {
+  const id = req.body.Id;
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404).send("user is not found");
+    }
+    const username = user.firstName;
+
+    await User.findByIdAndDelete(id);
+    res.send(`delete the data of ${username} successfully`);
+  } catch (err) {
+    res.status(400).send("Something went wrong");
   }
 });
 
